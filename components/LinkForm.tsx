@@ -107,17 +107,15 @@ export default function LinkForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-3 rounded-lg border border-white/10 bg-white/[0.05] p-3 shadow-[0_18px_70px_rgba(0,0,0,0.38)]"
+      className="glass-panel-strong space-y-3 rounded-lg p-3 sm:p-4"
     >
       <label className="block">
-        <span className="mb-2 block text-xs font-medium uppercase tracking-normal text-zinc-500">
-          Paste URL
-        </span>
+        <span className="field-label">Paste URL</span>
         <input
           value={rawUrl}
           onChange={(event) => setRawUrl(event.target.value)}
           placeholder="https://example.com/post?utm_source=..."
-          className="h-12 w-full rounded-lg border border-white/10 bg-black/30 px-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-cyan-300/70 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.14)]"
+          className="form-control h-12 px-4 text-sm"
           inputMode="url"
           type="url"
           required
@@ -125,7 +123,7 @@ export default function LinkForm({
       </label>
       <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
         <button
-          className="h-11 rounded-lg border border-cyan-300/25 bg-cyan-300/10 px-4 text-sm font-medium text-cyan-100 transition hover:border-cyan-300/60 disabled:cursor-not-allowed disabled:opacity-50"
+          className="button-secondary h-11 px-4 text-sm"
           type="button"
           onClick={handleFetchPreview}
           disabled={isFetchingPreview || rawUrl.trim() === "" || !isOnline}
@@ -188,48 +186,42 @@ export default function LinkForm({
         </div>
       )}
       {previewError && (
-        <p className="rounded-lg border border-red-300/25 bg-red-300/10 px-3 py-2 text-sm text-red-100">
+        <p className="rounded-lg border border-red-300/25 bg-red-300/10 px-3 py-2 text-sm leading-6 text-red-100">
           {previewError}
         </p>
       )}
       <label className="block">
-        <span className="mb-2 block text-xs font-medium uppercase tracking-normal text-zinc-500">
-          Optional title
-        </span>
+        <span className="field-label">Optional title</span>
         <input
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           placeholder="Leave empty to use the domain"
-          className="h-12 w-full rounded-lg border border-white/10 bg-black/30 px-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-cyan-300/70 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.14)]"
+          className="form-control h-12 px-4 text-sm"
           type="text"
         />
       </label>
       <label className="block">
-        <span className="mb-2 block text-xs font-medium uppercase tracking-normal text-zinc-500">
-          Note
-        </span>
+        <span className="field-label">Note</span>
         <textarea
           value={note}
           onChange={(event) => setNote(event.target.value)}
           placeholder="Why save this?"
-          className="min-h-20 w-full resize-none rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-cyan-300/70 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.14)]"
+          className="form-control min-h-20 resize-none px-4 py-3 text-sm"
           maxLength={220}
         />
       </label>
       <label className="block">
-        <span className="mb-2 block text-xs font-medium uppercase tracking-normal text-zinc-500">
-          Tags
-        </span>
+        <span className="field-label">Tags</span>
         <input
           value={tags}
           onChange={(event) => setTags(event.target.value)}
           placeholder="react, reading, work"
-          className="h-12 w-full rounded-lg border border-white/10 bg-black/30 px-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-cyan-300/70 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.14)]"
+          className="form-control h-12 px-4 text-sm"
           type="text"
         />
       </label>
       <button
-        className="h-12 w-full rounded-lg bg-cyan-300 px-4 text-sm font-semibold text-zinc-950 transition hover:bg-cyan-200 active:scale-[0.99]"
+        className="button-primary h-12 w-full px-4 text-sm"
         type="submit"
       >
         Save link

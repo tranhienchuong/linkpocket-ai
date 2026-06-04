@@ -342,7 +342,7 @@ export default function LinkList() {
       : "Try another search term or switch category.";
 
   return (
-    <section className="space-y-5">
+    <section className="space-y-6">
       <LinkForm
         isOnline={isOnline}
         onSubmit={handleAddLink}
@@ -351,14 +351,14 @@ export default function LinkList() {
       />
 
       {clientReady && !isOnline && (
-        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1.5 text-xs font-medium text-amber-100">
+        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1.5 text-xs font-semibold text-amber-100">
           <span className="h-2 w-2 rounded-full bg-amber-300" />
           Offline mode
         </div>
       )}
 
       {clientReady && showInstallHint && (
-        <div className="rounded-lg border border-cyan-300/20 bg-cyan-300/[0.07] p-3 shadow-[0_18px_60px_rgba(0,0,0,0.28)]">
+        <div className="glass-panel rounded-lg p-3">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
               <p className="text-sm font-semibold text-cyan-100">
@@ -370,7 +370,7 @@ export default function LinkList() {
               </p>
             </div>
             <button
-              className="h-10 shrink-0 rounded-lg border border-white/10 bg-white/[0.06] px-3 text-xs font-medium text-zinc-300"
+              className="button-secondary h-10 shrink-0 px-3 text-xs"
               type="button"
               onClick={handleDismissInstallHint}
             >
@@ -380,7 +380,7 @@ export default function LinkList() {
         </div>
       )}
 
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
         {[
           ["Total", stats.total],
           ["Code", stats.Code],
@@ -390,24 +390,24 @@ export default function LinkList() {
         ].map(([label, value]) => (
           <div
             key={label}
-            className="rounded-lg border border-white/10 bg-white/[0.045] px-2 py-3 text-center"
+            className="glass-soft rounded-lg px-2 py-3 text-center"
           >
             <div className="text-lg font-semibold text-white">{value}</div>
-            <div className="mt-1 text-[11px] font-medium text-zinc-500">
+            <div className="mt-1 text-[11px] font-semibold text-zinc-500">
               {label}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="space-y-4 rounded-lg border border-white/10 bg-white/[0.035] p-3">
+      <div className="glass-panel space-y-4 rounded-lg p-3">
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
         <CategoryFilter value={category} onChange={setCategory} />
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid gap-2 sm:grid-cols-3">
         <button
-          className="h-11 rounded-lg border border-cyan-300/20 bg-cyan-300/10 px-3 text-xs font-medium text-cyan-100 transition hover:border-cyan-300/50 disabled:cursor-not-allowed disabled:opacity-40"
+          className="button-secondary h-11 px-3 text-xs"
           type="button"
           onClick={handleExport}
           disabled={links.length === 0}
@@ -415,14 +415,14 @@ export default function LinkList() {
           Export JSON
         </button>
         <button
-          className="h-11 rounded-lg border border-cyan-300/20 bg-cyan-300/10 px-3 text-xs font-medium text-cyan-100 transition hover:border-cyan-300/50"
+          className="button-secondary h-11 px-3 text-xs"
           type="button"
           onClick={() => importInputRef.current?.click()}
         >
           Import JSON
         </button>
         <button
-          className="h-11 rounded-lg border border-red-300/20 bg-red-300/10 px-3 text-xs font-medium text-red-100 transition hover:border-red-300/50 disabled:cursor-not-allowed disabled:opacity-40"
+          className="button-danger h-11 px-3 text-xs"
           type="button"
           onClick={handleClearAll}
           disabled={links.length === 0}
@@ -444,7 +444,7 @@ export default function LinkList() {
         </p>
         {hasFilters && (
           <button
-            className="h-10 rounded-lg border border-white/10 bg-white/[0.05] px-3 text-xs font-medium text-zinc-300"
+            className="button-secondary h-10 px-3 text-xs"
             type="button"
             onClick={() => {
               setSearchQuery("");
@@ -472,7 +472,7 @@ export default function LinkList() {
           ))}
         </div>
       ) : (
-        <div className="rounded-lg border border-dashed border-cyan-300/20 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.12),rgba(255,255,255,0.03)_42%,rgba(255,255,255,0.02)_100%)] px-5 py-12 text-center">
+        <div className="glass-panel rounded-lg border-dashed border-cyan-300/20 px-5 py-12 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg border border-cyan-300/20 bg-cyan-300/10 text-lg font-semibold text-cyan-100">
             LP
           </div>
@@ -487,7 +487,7 @@ export default function LinkList() {
 
       {toast && (
         <div
-          className={`fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md rounded-lg border px-4 py-3 text-sm shadow-[0_20px_70px_rgba(0,0,0,0.55)] ${
+          className={`fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-md rounded-lg border px-4 py-3 text-sm shadow-[0_20px_70px_rgba(0,0,0,0.55)] backdrop-blur-md ${
             toast.type === "error"
               ? "border-red-300/30 bg-red-950/95 text-red-100"
               : "border-cyan-300/30 bg-[#07141b]/95 text-cyan-100"

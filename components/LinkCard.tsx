@@ -107,28 +107,24 @@ export default function LinkCard({
 
   if (isEditing) {
     return (
-      <article className="rounded-lg border border-cyan-300/25 bg-[#0d111c]/95 p-4 shadow-[0_16px_50px_rgba(0,0,0,0.28)]">
+      <article className="glass-panel-strong rounded-lg p-4">
         <form className="space-y-3" onSubmit={handleSave}>
           <div className="grid gap-3 sm:grid-cols-[1fr_150px]">
             <label className="block">
-              <span className="mb-2 block text-xs font-medium uppercase tracking-normal text-zinc-500">
-                Title
-              </span>
+              <span className="field-label">Title</span>
               <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                className="h-12 w-full rounded-lg border border-white/10 bg-black/30 px-4 text-sm text-white outline-none focus:border-cyan-300/70"
+                className="form-control h-12 px-4 text-sm"
                 type="text"
               />
             </label>
             <label className="block">
-              <span className="mb-2 block text-xs font-medium uppercase tracking-normal text-zinc-500">
-                Category
-              </span>
+              <span className="field-label">Category</span>
               <select
                 value={category}
                 onChange={(event) => setCategory(event.target.value as Category)}
-                className="h-12 w-full rounded-lg border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-cyan-300/70"
+                className="form-control h-12 px-3 text-sm"
               >
                 {LINK_CATEGORIES.map((item) => (
                   <option key={item} value={item}>
@@ -139,37 +135,33 @@ export default function LinkCard({
             </label>
           </div>
           <label className="block">
-            <span className="mb-2 block text-xs font-medium uppercase tracking-normal text-zinc-500">
-              Note
-            </span>
+            <span className="field-label">Note</span>
             <textarea
               value={note}
               onChange={(event) => setNote(event.target.value)}
-              className="min-h-20 w-full resize-none rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300/70"
+              className="form-control min-h-20 resize-none px-4 py-3 text-sm"
               maxLength={220}
             />
           </label>
           <label className="block">
-            <span className="mb-2 block text-xs font-medium uppercase tracking-normal text-zinc-500">
-              Tags
-            </span>
+            <span className="field-label">Tags</span>
             <input
               value={tags}
               onChange={(event) => setTags(event.target.value)}
-              className="h-12 w-full rounded-lg border border-white/10 bg-black/30 px-4 text-sm text-white outline-none focus:border-cyan-300/70"
+              className="form-control h-12 px-4 text-sm"
               type="text"
             />
           </label>
           <div className="grid grid-cols-2 gap-2">
             <button
-              className="h-11 rounded-lg border border-white/10 bg-white/[0.06] text-sm font-medium text-zinc-200"
+              className="button-secondary h-11 text-sm"
               type="button"
               onClick={handleCancel}
             >
               Cancel
             </button>
             <button
-              className="h-11 rounded-lg bg-cyan-300 text-sm font-semibold text-zinc-950"
+              className="button-primary h-11 text-sm"
               type="submit"
             >
               Save edit
@@ -181,7 +173,7 @@ export default function LinkCard({
   }
 
   return (
-    <article className="rounded-lg border border-white/10 bg-[#0d111c]/95 p-4 shadow-[0_16px_50px_rgba(0,0,0,0.28)]">
+    <article className="glass-panel ambient-lift rounded-lg p-4">
       {link.image && !imageFailed && (
         <img
           src={link.image}
@@ -214,7 +206,7 @@ export default function LinkCard({
           )}
         </div>
         <span
-          className={`shrink-0 rounded-md border px-2.5 py-1 text-xs font-medium ${CATEGORY_STYLES[link.category]}`}
+          className={`shrink-0 rounded-md border px-2.5 py-1 text-xs font-semibold ${CATEGORY_STYLES[link.category]}`}
         >
           {link.category}
         </span>
@@ -265,7 +257,7 @@ export default function LinkCard({
                 ))}
               </div>
               <button
-                className="h-10 rounded-lg border border-violet-300/25 bg-violet-300/10 px-3 text-xs font-medium text-violet-100 transition hover:border-violet-300/50"
+                className="h-10 rounded-lg border border-violet-300/25 bg-violet-300/10 px-3 text-xs font-semibold text-violet-100 transition hover:border-violet-300/50"
                 type="button"
                 onClick={handleApplySuggestedTags}
               >
@@ -276,7 +268,7 @@ export default function LinkCard({
 
           {link.suggestedNote && (
             <button
-              className="h-10 rounded-lg border border-violet-300/25 bg-violet-300/10 px-3 text-xs font-medium text-violet-100 transition hover:border-violet-300/50"
+              className="h-10 rounded-lg border border-violet-300/25 bg-violet-300/10 px-3 text-xs font-semibold text-violet-100 transition hover:border-violet-300/50"
               type="button"
               onClick={handleApplySuggestedNote}
             >
@@ -314,7 +306,7 @@ export default function LinkCard({
         </time>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
           <button
-            className="h-11 rounded-lg border border-violet-300/20 bg-violet-300/10 px-2 text-xs font-medium text-violet-100 transition hover:border-violet-300/50 disabled:cursor-not-allowed disabled:opacity-45"
+            className="h-11 rounded-lg border border-violet-300/20 bg-violet-300/10 px-2 text-xs font-semibold text-violet-100 transition hover:border-violet-300/50 disabled:opacity-45"
             type="button"
             onClick={() => onSummarize(link)}
             disabled={!isOnline || isSummarizing}
@@ -325,26 +317,26 @@ export default function LinkCard({
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="h-11 rounded-lg border border-white/10 bg-white/[0.06] px-2 py-3 text-center text-xs font-medium text-zinc-100 transition hover:border-cyan-300/50"
+            className="button-secondary h-11 px-2 py-3 text-center text-xs"
           >
             Open
           </a>
           <button
-            className="h-11 rounded-lg border border-white/10 bg-white/[0.06] px-2 text-xs font-medium text-zinc-100 transition hover:border-cyan-300/50"
+            className="button-secondary h-11 px-2 text-xs"
             type="button"
             onClick={() => onCopy(link.url)}
           >
             Copy
           </button>
           <button
-            className="h-11 rounded-lg border border-white/10 bg-white/[0.06] px-2 text-xs font-medium text-zinc-100 transition hover:border-cyan-300/50"
+            className="button-secondary h-11 px-2 text-xs"
             type="button"
             onClick={() => setIsEditing(true)}
           >
             Edit
           </button>
           <button
-            className="h-11 rounded-lg border border-red-300/20 bg-red-300/10 px-2 text-xs font-medium text-red-100 transition hover:border-red-300/50"
+            className="button-danger h-11 px-2 text-xs"
             type="button"
             onClick={() => onDelete(link.id)}
           >
