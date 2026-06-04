@@ -9,6 +9,7 @@ type PreviewMetadata = {
 };
 
 type LinkFormProps = {
+  isOnline: boolean;
   onSubmit: (input: {
     rawUrl: string;
     title: string;
@@ -21,6 +22,7 @@ type LinkFormProps = {
 };
 
 export default function LinkForm({
+  isOnline,
   onSubmit,
   onPreviewError,
   onPreviewSuccess,
@@ -46,6 +48,14 @@ export default function LinkForm({
 
   async function handleFetchPreview() {
     setPreviewError("");
+
+    if (!isOnline) {
+      const message = "Preview needs internet. You can still save links offline.";
+      setPreviewError(message);
+      onPreviewError(message);
+      return;
+    }
+
     setIsFetchingPreview(true);
 
     try {
@@ -82,9 +92,11 @@ export default function LinkForm({
       onPreviewSuccess("Preview fetched.");
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Could not fetch preview metadata.";
+        !isOnline || error instanceof TypeError
+          ? "Preview needs internet. You can still save links offline."
+          : error instanceof Error
+            ? error.message
+            : "Could not fetch preview metadata.";
       setPreviewError(message);
       onPreviewError(message);
     } finally {
@@ -116,11 +128,20 @@ export default function LinkForm({
           className="h-11 rounded-lg border border-cyan-300/25 bg-cyan-300/10 px-4 text-sm font-medium text-cyan-100 transition hover:border-cyan-300/60 disabled:cursor-not-allowed disabled:opacity-50"
           type="button"
           onClick={handleFetchPreview}
-          disabled={isFetchingPreview || rawUrl.trim() === ""}
+          disabled={isFetchingPreview || rawUrl.trim() === "" || !isOnline}
+          title={!isOnline ? "Preview requires an internet connection." : undefined}
         >
-          {isFetchingPreview ? "Fetching..." : "Get Preview"}
+          {!isOnline
+            ? "Preview offline"
+            : isFetchingPreview
+              ? "Fetching..."
+              : "Get Preview"}
         </button>
-        {(metadata.description || metadata.image || metadata.favicon) && (
+        {!isOnline ? (
+          <p className="text-xs leading-5 text-amber-100/80">
+            Preview fetch is paused until you are online.
+          </p>
+        ) : (metadata.description || metadata.image || metadata.favicon) && (
           <p className="text-xs text-zinc-500">
             Preview data will be saved with this link.
           </p>

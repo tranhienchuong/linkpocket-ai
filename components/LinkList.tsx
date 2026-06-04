@@ -20,6 +20,8 @@ type LinkMetadataInput = Pick<
   "description" | "favicon" | "image" | "siteName"
 >;
 
+const INSTALL_HINT_KEY = "linkpocket-ai-install-hint-dismissed";
+
 function parseTags(tags: string) {
   return Array.from(
     new Set(
@@ -44,6 +46,8 @@ function getStats(links: SavedLink[]) {
 export default function LinkList() {
   const [links, setLinks] = useState<SavedLink[]>([]);
   const [clientReady, setClientReady] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+  const [showInstallHint, setShowInstallHint] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState<CategoryFilterValue>("All");
   const [toast, setToast] = useState<Toast | null>(null);
@@ -51,7 +55,35 @@ export default function LinkList() {
 
   useEffect(() => {
     setLinks(loadLinks());
+    setIsOnline(navigator.onLine);
+    setShowInstallHint(
+      window.localStorage.getItem(INSTALL_HINT_KEY) !== "true" &&
+        !window.matchMedia("(display-mode: standalone)").matches,
+    );
     setClientReady(true);
+  }, []);
+
+  useEffect(() => {
+    function handleOnline() {
+      setIsOnline(true);
+      setToast({ message: "Back online.", type: "success" });
+    }
+
+    function handleOffline() {
+      setIsOnline(false);
+      setToast({
+        message: "Offline mode. Saved links still work.",
+        type: "error",
+      });
+    }
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
   }, []);
 
   useEffect(() => {
@@ -185,6 +217,11 @@ export default function LinkList() {
     }
   }
 
+  function handleDismissInstallHint() {
+    window.localStorage.setItem(INSTALL_HINT_KEY, "true");
+    setShowInstallHint(false);
+  }
+
   async function handleImport(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = "";
@@ -227,10 +264,41 @@ export default function LinkList() {
   return (
     <section className="space-y-5">
       <LinkForm
+        isOnline={isOnline}
         onSubmit={handleAddLink}
         onPreviewError={(message) => showToast(message, "error")}
         onPreviewSuccess={showToast}
       />
+
+      {clientReady && !isOnline && (
+        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1.5 text-xs font-medium text-amber-100">
+          <span className="h-2 w-2 rounded-full bg-amber-300" />
+          Offline mode
+        </div>
+      )}
+
+      {clientReady && showInstallHint && (
+        <div className="rounded-lg border border-cyan-300/20 bg-cyan-300/[0.07] p-3 shadow-[0_18px_60px_rgba(0,0,0,0.28)]">
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-cyan-100">
+                Add to Home Screen
+              </p>
+              <p className="text-sm leading-6 text-zinc-400">
+                Install LinkPocket for a full-screen mobile app that opens your
+                saved links offline.
+              </p>
+            </div>
+            <button
+              className="h-10 shrink-0 rounded-lg border border-white/10 bg-white/[0.06] px-3 text-xs font-medium text-zinc-300"
+              type="button"
+              onClick={handleDismissInstallHint}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-5 gap-2">
         {[
