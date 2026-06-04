@@ -1,0 +1,22 @@
+export const CATEGORIES = [
+  "All",
+  "Code",
+  "Video",
+  "Study",
+  "Article",
+  "Social",
+  "Shopping",
+  "Other",
+] as const;
+
+export type Category = Exclude<(typeof CATEGORIES)[number], "All">;
+export type CategoryFilterValue = (typeof CATEGORIES)[number];
+
+export type SavedLink = {
+  id: string;
+  title: string;
+  domain: string;
+  category: Category;
+  url: string;
+  createdAt: string;
+};
