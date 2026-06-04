@@ -3,7 +3,12 @@ import { LINK_CATEGORIES, type SavedLink } from "@/lib/types";
 const STORAGE_KEY = "linkpocket-ai-links";
 
 type ImportedSavedLink = Omit<SavedLink, "note" | "tags"> &
-  Partial<Pick<SavedLink, "note" | "tags">>;
+  Partial<
+    Pick<
+      SavedLink,
+      "note" | "tags" | "description" | "favicon" | "image" | "siteName"
+    >
+  >;
 
 function isSavedLinkLike(value: unknown): value is ImportedSavedLink {
   if (!value || typeof value !== "object") {
@@ -51,6 +56,11 @@ export function normalizeLinks(value: unknown): SavedLink[] {
       tags: Array.isArray(item.tags)
         ? item.tags.filter((tag): tag is string => typeof tag === "string")
         : [],
+      description:
+        typeof item.description === "string" ? item.description : undefined,
+      favicon: typeof item.favicon === "string" ? item.favicon : undefined,
+      image: typeof item.image === "string" ? item.image : undefined,
+      siteName: typeof item.siteName === "string" ? item.siteName : undefined,
       createdAt: item.createdAt,
     };
   });

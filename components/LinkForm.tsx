@@ -1,27 +1,95 @@
 import { FormEvent, useState } from "react";
 
+type PreviewMetadata = {
+  title?: string;
+  description?: string;
+  favicon?: string;
+  image?: string;
+  siteName?: string;
+};
+
 type LinkFormProps = {
   onSubmit: (input: {
     rawUrl: string;
     title: string;
     note: string;
     tags: string;
+    metadata: PreviewMetadata;
   }) => void;
+  onPreviewError: (message: string) => void;
+  onPreviewSuccess: (message: string) => void;
 };
 
-export default function LinkForm({ onSubmit }: LinkFormProps) {
+export default function LinkForm({
+  onSubmit,
+  onPreviewError,
+  onPreviewSuccess,
+}: LinkFormProps) {
   const [rawUrl, setRawUrl] = useState("");
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
   const [tags, setTags] = useState("");
+  const [metadata, setMetadata] = useState<PreviewMetadata>({});
+  const [isFetchingPreview, setIsFetchingPreview] = useState(false);
+  const [previewError, setPreviewError] = useState("");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onSubmit({ rawUrl, title, note, tags });
+    onSubmit({ rawUrl, title, note, tags, metadata });
     setRawUrl("");
     setTitle("");
     setNote("");
     setTags("");
+    setMetadata({});
+    setPreviewError("");
+  }
+
+  async function handleFetchPreview() {
+    setPreviewError("");
+    setIsFetchingPreview(true);
+
+    try {
+      const response = await fetch("/api/metadata", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url: rawUrl }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          typeof data?.error === "string"
+            ? data.error
+            : "Could not fetch preview metadata.",
+        );
+      }
+
+      const nextMetadata: PreviewMetadata = {
+        title: typeof data.title === "string" ? data.title : undefined,
+        description:
+          typeof data.description === "string" ? data.description : undefined,
+        favicon: typeof data.favicon === "string" ? data.favicon : undefined,
+        image: typeof data.image === "string" ? data.image : undefined,
+        siteName: typeof data.siteName === "string" ? data.siteName : undefined,
+      };
+
+      setMetadata(nextMetadata);
+      if (!title.trim() && nextMetadata.title) {
+        setTitle(nextMetadata.title);
+      }
+      onPreviewSuccess("Preview fetched.");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Could not fetch preview metadata.";
+      setPreviewError(message);
+      onPreviewError(message);
+    } finally {
+      setIsFetchingPreview(false);
+    }
   }
 
   return (
@@ -43,6 +111,66 @@ export default function LinkForm({ onSubmit }: LinkFormProps) {
           required
         />
       </label>
+      <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
+        <button
+          className="h-11 rounded-lg border border-cyan-300/25 bg-cyan-300/10 px-4 text-sm font-medium text-cyan-100 transition hover:border-cyan-300/60 disabled:cursor-not-allowed disabled:opacity-50"
+          type="button"
+          onClick={handleFetchPreview}
+          disabled={isFetchingPreview || rawUrl.trim() === ""}
+        >
+          {isFetchingPreview ? "Fetching..." : "Get Preview"}
+        </button>
+        {(metadata.description || metadata.image || metadata.favicon) && (
+          <p className="text-xs text-zinc-500">
+            Preview data will be saved with this link.
+          </p>
+        )}
+      </div>
+      {(metadata.title ||
+        metadata.description ||
+        metadata.image ||
+        metadata.siteName) && (
+        <div className="overflow-hidden rounded-lg border border-white/10 bg-black/25">
+          {metadata.image && (
+            <img
+              src={metadata.image}
+              alt=""
+              className="aspect-[16/9] w-full object-cover"
+            />
+          )}
+          <div className="space-y-2 p-3">
+            <div className="flex min-w-0 items-center gap-2">
+              {metadata.favicon && (
+                <img
+                  src={metadata.favicon}
+                  alt=""
+                  className="h-4 w-4 shrink-0 rounded-sm"
+                />
+              )}
+              {metadata.siteName && (
+                <p className="truncate text-xs font-medium text-zinc-500">
+                  {metadata.siteName}
+                </p>
+              )}
+            </div>
+            {metadata.title && (
+              <p className="text-sm font-semibold leading-5 text-zinc-100">
+                {metadata.title}
+              </p>
+            )}
+            {metadata.description && (
+              <p className="line-clamp-3 text-sm leading-6 text-zinc-400">
+                {metadata.description}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+      {previewError && (
+        <p className="rounded-lg border border-red-300/25 bg-red-300/10 px-3 py-2 text-sm text-red-100">
+          {previewError}
+        </p>
+      )}
       <label className="block">
         <span className="mb-2 block text-xs font-medium uppercase tracking-normal text-zinc-500">
           Optional title

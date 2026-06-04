@@ -15,6 +15,11 @@ type Toast = {
   type: "success" | "error";
 };
 
+type LinkMetadataInput = Pick<
+  SavedLink,
+  "description" | "favicon" | "image" | "siteName"
+>;
+
 function parseTags(tags: string) {
   return Array.from(
     new Set(
@@ -76,6 +81,8 @@ export default function LinkList() {
       const matchesSearch =
         !normalizedSearch ||
         link.title.toLowerCase().includes(normalizedSearch) ||
+        link.description?.toLowerCase().includes(normalizedSearch) ||
+        link.siteName?.toLowerCase().includes(normalizedSearch) ||
         link.domain.toLowerCase().includes(normalizedSearch) ||
         link.url.toLowerCase().includes(normalizedSearch) ||
         link.tags.some((tag) => tag.toLowerCase().includes(normalizedSearch));
@@ -93,6 +100,7 @@ export default function LinkList() {
     title: string;
     note: string;
     tags: string;
+    metadata: LinkMetadataInput;
   }) {
     try {
       const { cleanUrl: normalizedUrl, domain } = cleanUrl(input.rawUrl);
@@ -106,6 +114,10 @@ export default function LinkList() {
         url: normalizedUrl,
         note: input.note.trim(),
         tags: parseTags(input.tags),
+        description: input.metadata.description,
+        favicon: input.metadata.favicon,
+        image: input.metadata.image,
+        siteName: input.metadata.siteName,
         createdAt: new Date().toISOString(),
       };
 
@@ -214,7 +226,11 @@ export default function LinkList() {
 
   return (
     <section className="space-y-5">
-      <LinkForm onSubmit={handleAddLink} />
+      <LinkForm
+        onSubmit={handleAddLink}
+        onPreviewError={(message) => showToast(message, "error")}
+        onPreviewSuccess={showToast}
+      />
 
       <div className="grid grid-cols-5 gap-2">
         {[

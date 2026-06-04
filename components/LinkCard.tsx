@@ -51,6 +51,7 @@ export default function LinkCard({
   const [category, setCategory] = useState<Category>(link.category);
   const [note, setNote] = useState(link.note);
   const [tags, setTags] = useState(link.tags.join(", "));
+  const [imageFailed, setImageFailed] = useState(false);
   const createdDate = new Intl.DateTimeFormat("en", {
     month: "short",
     day: "2-digit",
@@ -154,12 +155,36 @@ export default function LinkCard({
 
   return (
     <article className="rounded-lg border border-white/10 bg-[#0d111c]/95 p-4 shadow-[0_16px_50px_rgba(0,0,0,0.28)]">
+      {link.image && !imageFailed && (
+        <img
+          src={link.image}
+          alt=""
+          className="mb-3 aspect-[16/9] w-full rounded-lg border border-white/10 object-cover"
+          loading="lazy"
+          onError={() => setImageFailed(true)}
+        />
+      )}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
+          <div className="flex min-w-0 items-center gap-2">
+            {link.favicon && (
+              <img
+                src={link.favicon}
+                alt=""
+                className="h-4 w-4 shrink-0 rounded-sm"
+                loading="lazy"
+              />
+            )}
+            <p className="truncate text-xs font-medium text-zinc-500">
+              {link.siteName || link.domain}
+            </p>
+          </div>
           <h2 className="break-words text-base font-semibold leading-6 text-white">
             {link.title}
           </h2>
-          <p className="truncate text-sm text-zinc-500">{link.domain}</p>
+          {link.siteName && (
+            <p className="truncate text-sm text-zinc-500">{link.domain}</p>
+          )}
         </div>
         <span
           className={`shrink-0 rounded-md border px-2.5 py-1 text-xs font-medium ${CATEGORY_STYLES[link.category]}`}
@@ -167,6 +192,12 @@ export default function LinkCard({
           {link.category}
         </span>
       </div>
+
+      {link.description && (
+        <p className="mt-3 line-clamp-3 text-sm leading-6 text-zinc-400">
+          {link.description}
+        </p>
+      )}
 
       {link.note && (
         <p className="mt-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm leading-5 text-zinc-300">
