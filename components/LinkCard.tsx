@@ -1,9 +1,22 @@
-import type { SavedLink } from "@/lib/types";
+import { FormEvent, useState } from "react";
+import {
+  LINK_CATEGORIES,
+  type Category,
+  type SavedLink,
+} from "@/lib/types";
 
 type LinkCardProps = {
   link: SavedLink;
   onCopy: (url: string) => void;
   onDelete: (id: string) => void;
+  onUpdate: (id: string, update: LinkCardUpdate) => void;
+};
+
+export type LinkCardUpdate = {
+  title: string;
+  category: Category;
+  note: string;
+  tags: string[];
 };
 
 const CATEGORY_STYLES: Record<SavedLink["category"], string> = {
@@ -16,18 +29,134 @@ const CATEGORY_STYLES: Record<SavedLink["category"], string> = {
   Other: "border-zinc-300/20 bg-zinc-300/10 text-zinc-200",
 };
 
-export default function LinkCard({ link, onCopy, onDelete }: LinkCardProps) {
+function parseTags(tags: string) {
+  return Array.from(
+    new Set(
+      tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
+export default function LinkCard({
+  link,
+  onCopy,
+  onDelete,
+  onUpdate,
+}: LinkCardProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [title, setTitle] = useState(link.title);
+  const [category, setCategory] = useState<Category>(link.category);
+  const [note, setNote] = useState(link.note);
+  const [tags, setTags] = useState(link.tags.join(", "));
   const createdDate = new Intl.DateTimeFormat("en", {
     month: "short",
     day: "2-digit",
     year: "numeric",
+    timeZone: "UTC",
   }).format(new Date(link.createdAt));
+
+  function handleCancel() {
+    setTitle(link.title);
+    setCategory(link.category);
+    setNote(link.note);
+    setTags(link.tags.join(", "));
+    setIsEditing(false);
+  }
+
+  function handleSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    onUpdate(link.id, {
+      title: title.trim() || link.domain,
+      category,
+      note: note.trim(),
+      tags: parseTags(tags),
+    });
+    setIsEditing(false);
+  }
+
+  if (isEditing) {
+    return (
+      <article className="rounded-lg border border-cyan-300/25 bg-[#0d111c]/95 p-4 shadow-[0_16px_50px_rgba(0,0,0,0.28)]">
+        <form className="space-y-3" onSubmit={handleSave}>
+          <div className="grid gap-3 sm:grid-cols-[1fr_150px]">
+            <label className="block">
+              <span className="mb-2 block text-xs font-medium uppercase tracking-normal text-zinc-500">
+                Title
+              </span>
+              <input
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                className="h-12 w-full rounded-lg border border-white/10 bg-black/30 px-4 text-sm text-white outline-none focus:border-cyan-300/70"
+                type="text"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-xs font-medium uppercase tracking-normal text-zinc-500">
+                Category
+              </span>
+              <select
+                value={category}
+                onChange={(event) => setCategory(event.target.value as Category)}
+                className="h-12 w-full rounded-lg border border-white/10 bg-black/30 px-3 text-sm text-white outline-none focus:border-cyan-300/70"
+              >
+                {LINK_CATEGORIES.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <label className="block">
+            <span className="mb-2 block text-xs font-medium uppercase tracking-normal text-zinc-500">
+              Note
+            </span>
+            <textarea
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              className="min-h-20 w-full resize-none rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none focus:border-cyan-300/70"
+              maxLength={220}
+            />
+          </label>
+          <label className="block">
+            <span className="mb-2 block text-xs font-medium uppercase tracking-normal text-zinc-500">
+              Tags
+            </span>
+            <input
+              value={tags}
+              onChange={(event) => setTags(event.target.value)}
+              className="h-12 w-full rounded-lg border border-white/10 bg-black/30 px-4 text-sm text-white outline-none focus:border-cyan-300/70"
+              type="text"
+            />
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              className="h-11 rounded-lg border border-white/10 bg-white/[0.06] text-sm font-medium text-zinc-200"
+              type="button"
+              onClick={handleCancel}
+            >
+              Cancel
+            </button>
+            <button
+              className="h-11 rounded-lg bg-cyan-300 text-sm font-semibold text-zinc-950"
+              type="submit"
+            >
+              Save edit
+            </button>
+          </div>
+        </form>
+      </article>
+    );
+  }
 
   return (
     <article className="rounded-lg border border-white/10 bg-[#0d111c]/95 p-4 shadow-[0_16px_50px_rgba(0,0,0,0.28)]">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
-          <h2 className="break-words text-lg font-semibold leading-6 text-white">
+          <h2 className="break-words text-base font-semibold leading-6 text-white">
             {link.title}
           </h2>
           <p className="truncate text-sm text-zinc-500">{link.domain}</p>
@@ -39,37 +168,63 @@ export default function LinkCard({ link, onCopy, onDelete }: LinkCardProps) {
         </span>
       </div>
 
+      {link.note && (
+        <p className="mt-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm leading-5 text-zinc-300">
+          {link.note}
+        </p>
+      )}
+
+      {link.tags.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {link.tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-md border border-cyan-300/20 bg-cyan-300/10 px-2 py-1 text-xs text-cyan-100"
+            >
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
+
       <a
         href={link.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-4 block break-all rounded-lg border border-white/10 bg-black/25 p-3 font-mono text-xs leading-5 text-cyan-100 transition hover:border-cyan-300/50"
+        className="mt-3 block break-all rounded-lg border border-white/10 bg-black/25 p-3 font-mono text-xs leading-5 text-cyan-100 transition hover:border-cyan-300/50"
       >
         {link.url}
       </a>
 
-      <div className="mt-4 flex items-center justify-between gap-3">
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <time className="text-xs text-zinc-500" dateTime={link.createdAt}>
           {createdDate}
         </time>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <a
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded-lg border border-white/10 bg-white/[0.06] px-3 py-2 text-center text-xs font-medium text-zinc-100 transition hover:border-cyan-300/50"
+            className="h-11 rounded-lg border border-white/10 bg-white/[0.06] px-2 py-3 text-center text-xs font-medium text-zinc-100 transition hover:border-cyan-300/50"
           >
             Open
           </a>
           <button
-            className="rounded-lg border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-medium text-zinc-100 transition hover:border-cyan-300/50"
+            className="h-11 rounded-lg border border-white/10 bg-white/[0.06] px-2 text-xs font-medium text-zinc-100 transition hover:border-cyan-300/50"
             type="button"
             onClick={() => onCopy(link.url)}
           >
             Copy
           </button>
           <button
-            className="rounded-lg border border-red-300/20 bg-red-300/10 px-3 py-2 text-xs font-medium text-red-100 transition hover:border-red-300/50"
+            className="h-11 rounded-lg border border-white/10 bg-white/[0.06] px-2 text-xs font-medium text-zinc-100 transition hover:border-cyan-300/50"
+            type="button"
+            onClick={() => setIsEditing(true)}
+          >
+            Edit
+          </button>
+          <button
+            className="h-11 rounded-lg border border-red-300/20 bg-red-300/10 px-2 text-xs font-medium text-red-100 transition hover:border-red-300/50"
             type="button"
             onClick={() => onDelete(link.id)}
           >

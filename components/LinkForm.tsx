@@ -1,18 +1,27 @@
 import { FormEvent, useState } from "react";
 
 type LinkFormProps = {
-  onSubmit: (input: { rawUrl: string; title: string }) => void;
+  onSubmit: (input: {
+    rawUrl: string;
+    title: string;
+    note: string;
+    tags: string;
+  }) => void;
 };
 
 export default function LinkForm({ onSubmit }: LinkFormProps) {
   const [rawUrl, setRawUrl] = useState("");
   const [title, setTitle] = useState("");
+  const [note, setNote] = useState("");
+  const [tags, setTags] = useState("");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onSubmit({ rawUrl, title });
+    onSubmit({ rawUrl, title, note, tags });
     setRawUrl("");
     setTitle("");
+    setNote("");
+    setTags("");
   }
 
   return (
@@ -42,6 +51,30 @@ export default function LinkForm({ onSubmit }: LinkFormProps) {
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           placeholder="Leave empty to use the domain"
+          className="h-12 w-full rounded-lg border border-white/10 bg-black/30 px-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-cyan-300/70 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.14)]"
+          type="text"
+        />
+      </label>
+      <label className="block">
+        <span className="mb-2 block text-xs font-medium uppercase tracking-normal text-zinc-500">
+          Note
+        </span>
+        <textarea
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+          placeholder="Why save this?"
+          className="min-h-20 w-full resize-none rounded-lg border border-white/10 bg-black/30 px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-cyan-300/70 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.14)]"
+          maxLength={220}
+        />
+      </label>
+      <label className="block">
+        <span className="mb-2 block text-xs font-medium uppercase tracking-normal text-zinc-500">
+          Tags
+        </span>
+        <input
+          value={tags}
+          onChange={(event) => setTags(event.target.value)}
+          placeholder="react, reading, work"
           className="h-12 w-full rounded-lg border border-white/10 bg-black/30 px-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-cyan-300/70 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.14)]"
           type="text"
         />

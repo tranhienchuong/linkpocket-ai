@@ -9,6 +9,10 @@ export const CATEGORIES = [
   "Other",
 ] as const;
 
+export const LINK_CATEGORIES = CATEGORIES.filter(
+  (category) => category !== "All",
+) as Category[];
+
 export type Category = Exclude<(typeof CATEGORIES)[number], "All">;
 export type CategoryFilterValue = (typeof CATEGORIES)[number];
 
@@ -18,5 +22,7 @@ export type SavedLink = {
   domain: string;
   category: Category;
   url: string;
+  note: string;
+  tags: string[];
   createdAt: string;
 };
