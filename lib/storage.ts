@@ -6,7 +6,16 @@ type ImportedSavedLink = Omit<SavedLink, "note" | "tags"> &
   Partial<
     Pick<
       SavedLink,
-      "note" | "tags" | "description" | "favicon" | "image" | "siteName"
+      | "note"
+      | "tags"
+      | "description"
+      | "favicon"
+      | "image"
+      | "siteName"
+      | "summary"
+      | "suggestedTags"
+      | "suggestedNote"
+      | "usefulness"
     >
   >;
 
@@ -61,6 +70,16 @@ export function normalizeLinks(value: unknown): SavedLink[] {
       favicon: typeof item.favicon === "string" ? item.favicon : undefined,
       image: typeof item.image === "string" ? item.image : undefined,
       siteName: typeof item.siteName === "string" ? item.siteName : undefined,
+      summary: typeof item.summary === "string" ? item.summary : undefined,
+      suggestedTags: Array.isArray(item.suggestedTags)
+        ? item.suggestedTags.filter(
+            (tag): tag is string => typeof tag === "string",
+          )
+        : undefined,
+      suggestedNote:
+        typeof item.suggestedNote === "string" ? item.suggestedNote : undefined,
+      usefulness:
+        typeof item.usefulness === "string" ? item.usefulness : undefined,
       createdAt: item.createdAt,
     };
   });

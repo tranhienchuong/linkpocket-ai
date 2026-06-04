@@ -28,5 +28,9 @@ export type SavedLink = {
   favicon?: string;
   image?: string;
   siteName?: string;
+  summary?: string;
+  suggestedTags?: string[];
+  suggestedNote?: string;
+  usefulness?: string;
   createdAt: string;
 };

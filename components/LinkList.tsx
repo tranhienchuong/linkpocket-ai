@@ -20,6 +20,14 @@ type LinkMetadataInput = Pick<
   "description" | "favicon" | "image" | "siteName"
 >;
 
+type SummarizeResponse = Pick<
+  SavedLink,
+  "summary" | "suggestedTags" | "suggestedNote" | "usefulness"
+> & {
+  suggestedCategory?: string;
+  error?: string;
+};
+
 const INSTALL_HINT_KEY = "linkpocket-ai-install-hint-dismissed";
 
 function parseTags(tags: string) {
@@ -51,16 +59,21 @@ export default function LinkList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState<CategoryFilterValue>("All");
   const [toast, setToast] = useState<Toast | null>(null);
+  const [summarizingLinkId, setSummarizingLinkId] = useState<string | null>(
+    null,
+  );
   const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setLinks(loadLinks());
-    setIsOnline(navigator.onLine);
-    setShowInstallHint(
-      window.localStorage.getItem(INSTALL_HINT_KEY) !== "true" &&
-        !window.matchMedia("(display-mode: standalone)").matches,
-    );
-    setClientReady(true);
+    window.queueMicrotask(() => {
+      setLinks(loadLinks());
+      setIsOnline(navigator.onLine);
+      setShowInstallHint(
+        window.localStorage.getItem(INSTALL_HINT_KEY) !== "true" &&
+          !window.matchMedia("(display-mode: standalone)").matches,
+      );
+      setClientReady(true);
+    });
   }, []);
 
   useEffect(() => {
@@ -117,6 +130,11 @@ export default function LinkList() {
         link.siteName?.toLowerCase().includes(normalizedSearch) ||
         link.domain.toLowerCase().includes(normalizedSearch) ||
         link.url.toLowerCase().includes(normalizedSearch) ||
+        link.summary?.toLowerCase().includes(normalizedSearch) ||
+        link.usefulness?.toLowerCase().includes(normalizedSearch) ||
+        link.suggestedTags?.some((tag) =>
+          tag.toLowerCase().includes(normalizedSearch),
+        ) ||
         link.tags.some((tag) => tag.toLowerCase().includes(normalizedSearch));
 
       return matchesCategory && matchesSearch;
@@ -180,15 +198,77 @@ export default function LinkList() {
         link.id === id
           ? {
               ...link,
-              title: update.title,
-              category: update.category,
-              note: update.note,
-              tags: update.tags,
+              ...update,
             }
           : link,
       ),
     );
     showToast("Link updated.");
+  }
+
+  async function handleSummarize(link: SavedLink) {
+    if (!isOnline) {
+      showToast("AI Summary needs internet. Please go online first.", "error");
+      return;
+    }
+
+    setSummarizingLinkId(link.id);
+
+    try {
+      const response = await fetch("/api/summarize", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url: link.url,
+          title: link.title,
+          description: link.description,
+          domain: link.domain,
+          category: link.category.toLowerCase(),
+          tags: link.tags,
+          note: link.note,
+        }),
+      });
+
+      const data = (await response.json()) as SummarizeResponse;
+
+      if (!response.ok) {
+        const message = data.error || "AI Summary failed.";
+        if (message.includes("Missing GROQ_API_KEY")) {
+          showToast(
+            "Missing GROQ_API_KEY. Add it to .env.local, then restart dev server.",
+            "error",
+          );
+          return;
+        }
+
+        showToast(message, "error");
+        return;
+      }
+
+      setLinks((currentLinks) =>
+        currentLinks.map((currentLink) =>
+          currentLink.id === link.id
+            ? {
+                ...currentLink,
+                summary: data.summary,
+                suggestedTags: data.suggestedTags ?? [],
+                suggestedNote: data.suggestedNote,
+                usefulness: data.usefulness,
+              }
+            : currentLink,
+        ),
+      );
+      showToast("AI summary saved.");
+    } catch {
+      showToast(
+        "AI Summary failed. Check your connection and try again.",
+        "error",
+      );
+    } finally {
+      setSummarizingLinkId(null);
+    }
   }
 
   function handleClearAll() {
@@ -382,9 +462,12 @@ export default function LinkList() {
             <LinkCard
               key={link.id}
               link={link}
+              isOnline={isOnline}
+              isSummarizing={summarizingLinkId === link.id}
               onCopy={handleCopy}
               onDelete={handleDelete}
               onUpdate={handleUpdate}
+              onSummarize={handleSummarize}
             />
           ))}
         </div>

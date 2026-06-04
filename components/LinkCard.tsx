@@ -7,17 +7,27 @@ import {
 
 type LinkCardProps = {
   link: SavedLink;
+  isOnline: boolean;
+  isSummarizing: boolean;
   onCopy: (url: string) => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, update: LinkCardUpdate) => void;
+  onSummarize: (link: SavedLink) => void;
 };
 
-export type LinkCardUpdate = {
-  title: string;
-  category: Category;
-  note: string;
-  tags: string[];
-};
+export type LinkCardUpdate = Partial<
+  Pick<
+    SavedLink,
+    | "title"
+    | "category"
+    | "note"
+    | "tags"
+    | "summary"
+    | "suggestedTags"
+    | "suggestedNote"
+    | "usefulness"
+  >
+>;
 
 const CATEGORY_STYLES: Record<SavedLink["category"], string> = {
   Code: "border-emerald-300/30 bg-emerald-300/10 text-emerald-100",
@@ -42,9 +52,12 @@ function parseTags(tags: string) {
 
 export default function LinkCard({
   link,
+  isOnline,
+  isSummarizing,
   onCopy,
   onDelete,
   onUpdate,
+  onSummarize,
 }: LinkCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(link.title);
@@ -76,6 +89,20 @@ export default function LinkCard({
       tags: parseTags(tags),
     });
     setIsEditing(false);
+  }
+
+  function handleApplySuggestedTags() {
+    const suggestedTags = link.suggestedTags ?? [];
+    const mergedTags = Array.from(new Set([...link.tags, ...suggestedTags]));
+    onUpdate(link.id, { tags: mergedTags });
+  }
+
+  function handleApplySuggestedNote() {
+    if (!link.suggestedNote) {
+      return;
+    }
+
+    onUpdate(link.id, { note: link.suggestedNote });
   }
 
   if (isEditing) {
@@ -205,6 +232,60 @@ export default function LinkCard({
         </p>
       )}
 
+      {(link.summary || link.usefulness || link.suggestedTags?.length) && (
+        <div className="mt-3 space-y-3 rounded-lg border border-violet-300/20 bg-violet-300/[0.07] p-3">
+          {link.summary && (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-normal text-violet-200">
+                AI Summary
+              </p>
+              <p className="mt-1 text-sm leading-6 text-zinc-200">
+                {link.summary}
+              </p>
+            </div>
+          )}
+
+          {link.usefulness && (
+            <p className="text-sm leading-6 text-zinc-300">
+              <span className="font-medium text-violet-100">Useful: </span>
+              {link.usefulness}
+            </p>
+          )}
+
+          {link.suggestedTags && link.suggestedTags.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-2">
+                {link.suggestedTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-md border border-violet-300/25 bg-violet-300/10 px-2 py-1 text-xs text-violet-100"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+              <button
+                className="h-10 rounded-lg border border-violet-300/25 bg-violet-300/10 px-3 text-xs font-medium text-violet-100 transition hover:border-violet-300/50"
+                type="button"
+                onClick={handleApplySuggestedTags}
+              >
+                Apply suggested tags
+              </button>
+            </div>
+          )}
+
+          {link.suggestedNote && (
+            <button
+              className="h-10 rounded-lg border border-violet-300/25 bg-violet-300/10 px-3 text-xs font-medium text-violet-100 transition hover:border-violet-300/50"
+              type="button"
+              onClick={handleApplySuggestedNote}
+            >
+              Apply suggested note
+            </button>
+          )}
+        </div>
+      )}
+
       {link.tags.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">
           {link.tags.map((tag) => (
@@ -231,7 +312,15 @@ export default function LinkCard({
         <time className="text-xs text-zinc-500" dateTime={link.createdAt}>
           {createdDate}
         </time>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+          <button
+            className="h-11 rounded-lg border border-violet-300/20 bg-violet-300/10 px-2 text-xs font-medium text-violet-100 transition hover:border-violet-300/50 disabled:cursor-not-allowed disabled:opacity-45"
+            type="button"
+            onClick={() => onSummarize(link)}
+            disabled={!isOnline || isSummarizing}
+          >
+            {isSummarizing ? "Summarizing" : "AI Summary"}
+          </button>
           <a
             href={link.url}
             target="_blank"
